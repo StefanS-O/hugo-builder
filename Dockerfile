@@ -2,7 +2,7 @@ FROM golang:1.20-buster
 
 # Arguments for versioning
 ARG HUGO_VERSION
-ARG DART_SASS_VERSION="1.69.5"
+ARG DART_SASS_VERSION="1.82.0"
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \

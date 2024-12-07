@@ -31,7 +31,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     ;; \
     esac && \
     # Install PostCSS and related packages globally
-    npm install -g postcss postcss-cli autoprefixer @fullhuman/postcss-purgecss && \
+    npm install -g postcss postcss-cli autoprefixer @fullhuman/postcss-purgecss cssnano && \
     npm cache clean --force && \
     # Final cleanup
     apt-get clean && \

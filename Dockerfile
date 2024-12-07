@@ -4,17 +4,19 @@ FROM golang:1.20-buster
 ARG HUGO_VERSION
 ARG DART_SASS_VERSION="1.69.5"
 
-# Install all dependencies and clean up in a single layer
+# Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get update && \
-    apt-get install -y nodejs tree && \
-    # Install Dart Sass
-    curl -LJO "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz" && \
+    apt-get install -y nodejs tree
+
+# Install Dart Sass
+RUN curl -LJO "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz" && \
     tar -xf dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz && \
     cp -r dart-sass/* /usr/local/bin && \
-    rm -rf dart-sass* && \
-    # Install Hugo based on architecture
-    arch=$(dpkg --print-architecture) && \
+    rm -rf dart-sass*
+
+# Install Hugo
+RUN arch=$(dpkg --print-architecture) && \
     case ${arch} in \
     arm64) \
     curl -LJO "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-arm64.deb" && \
@@ -29,21 +31,24 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     *) \
     echo "Unsupported architecture: ${arch}" && exit 1 \
     ;; \
-    esac && \
-    # Create non-root user and setup npm directory
-    useradd -m -s /bin/bash builder && \
+    esac
+
+# Create non-root user and setup npm directory
+RUN useradd -m -s /bin/bash builder && \
     mkdir -p /usr/lib/node_modules && \
     chown -R builder:builder /usr/lib/node_modules && \
-    npm config set prefix /usr && \
-    # Install PostCSS and plugins globally
-    runuser -l builder -c 'npm install -g \
+    npm config set prefix /usr
+
+# Install global npm packages as builder user
+RUN runuser -l builder -c 'npm install -g \
     postcss \
     postcss-cli \
     autoprefixer \
     @fullhuman/postcss-purgecss \
-    cssnano' && \
-    # Clean up
-    apt-get clean && \
+    cssnano'
+
+# Clean up
+RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Switch to non-root user

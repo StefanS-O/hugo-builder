@@ -48,6 +48,7 @@ USER builder
 # Configure npm for builder user
 ENV NPM_CONFIG_PREFIX=/home/builder/.npm-global
 ENV PATH=/home/builder/.npm-global/bin:$PATH
+ENV NODE_PATH=/home/builder/.npm-global/lib/node_modules
 
 # Install global npm packages
 RUN npm install -g \

@@ -33,10 +33,8 @@ RUN arch=$(dpkg --print-architecture) && \
     ;; \
     esac
 
-# Create non-root user and set up npm directory
-RUN useradd -m -s /bin/bash builder && \
-    mkdir -p /home/builder/.npm-global && \
-    chown -R builder:builder /home/builder/.npm-global
+# Create non-root user
+RUN useradd -m -s /bin/bash builder
 
 # Clean up
 RUN apt-get clean && \
@@ -44,18 +42,5 @@ RUN apt-get clean && \
 
 # Switch to non-root user
 USER builder
-
-# Configure npm for builder user
-ENV NPM_CONFIG_PREFIX=/home/builder/.npm-global
-ENV PATH=/home/builder/.npm-global/bin:$PATH
-ENV NODE_PATH=/home/builder/.npm-global/lib/node_modules
-
-# Install global npm packages
-RUN npm install -g \
-    postcss \
-    postcss-cli \
-    autoprefixer \
-    @fullhuman/postcss-purgecss \
-    cssnano
 
 WORKDIR /build

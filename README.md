@@ -5,8 +5,7 @@ This Docker image provides a complete build environment for Hugo sites with Sass
 - Hugo Extended
 - Dart Sass
 - Node.js 20.x
-- PostCSS with plugins (autoprefixer, purgecss)
-- Other utilities (tree)
+- Tree (for directory structure visualization)
 
 ## Automated Builds
 
@@ -19,12 +18,30 @@ The image is automatically built and published to Docker Hub whenever a new Hugo
 
 ### In GitLab CI
 
+Your project needs a `package.json` with the required PostCSS dependencies:
+
+```json
+{
+  "dependencies": {
+    "autoprefixer": "^10.4.16",
+    "@fullhuman/postcss-purgecss": "^5.0.0",
+    "cssnano": "^6.0.2",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0"
+  }
+}
+```
+
+And a corresponding `.gitlab-ci.yml`:
+
 ```yaml
 build:
   stage: build
   image: stefanso/hugo-builder:latest
   script:
-    - hugo
+    - npm install
+    - hugo --gc --minify
+    - postcss public/**/*.css --replace
 ```
 
 ### Local Development
@@ -64,6 +81,35 @@ docker build --build-arg HUGO_VERSION=0.121.1 -t hugo-builder:0.121.1 .
 
 `docker run --rm -it -v ${PWD}:/build -p 1313:1313 hugo-builder:latest hugo server --bind 0.0.0.0`
 
+## PostCSS Setup
+
+The image no longer includes global PostCSS installations. Instead, you should:
+
+1. Include a `package.json` in your project with the required PostCSS dependencies
+2. Run `npm install` before running PostCSS commands
+3. Include a `postcss.config.js` in your project root
+
+Example `postcss.config.js`:
+
+```javascript
+module.exports = {
+  plugins: {
+    autoprefixer: {},
+    "@fullhuman/postcss-purgecss": {
+      content: ["./layouts/**/*.html", "./content/**/*.md"],
+      safelist: {
+        standard: ["html", "body"],
+        deep: [/^columns/, /^column/, /^is-/, /^has-/],
+        greedy: [/^blue-white/],
+      },
+    },
+    cssnano: {
+      preset: "default",
+    },
+  },
+};
+```
+
 ## Environment Variables
 
 - `HUGO_VERSION`: Hugo version to install (required during build)
@@ -98,10 +144,6 @@ The image includes:
 - Hugo Extended (version specified during build)
 - Dart Sass (for Sass/SCSS processing)
 - Node.js 20.x
-- PostCSS with the following plugins:
-  - postcss-cli
-  - autoprefixer
-  - @fullhuman/postcss-purgecss
 - Tree (for directory structure visualization)
 
 ## Contributing

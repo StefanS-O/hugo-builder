@@ -33,19 +33,19 @@ RUN arch=$(dpkg --print-architecture) && \
     ;; \
     esac
 
-# Create non-root user and setup npm directory
-RUN useradd -m -s /bin/bash builder && \
-    mkdir -p /usr/lib/node_modules && \
-    chown -R builder:builder /usr/lib/node_modules && \
-    npm config set prefix /usr
-
-# Install global npm packages as builder user
-RUN runuser -l builder -c 'npm install -g \
+# Install global npm packages first
+RUN npm install -g \
     postcss \
     postcss-cli \
     autoprefixer \
     @fullhuman/postcss-purgecss \
-    cssnano'
+    cssnano
+
+# Create non-root user
+RUN useradd -m -s /bin/bash builder && \
+    # Give builder access to global node_modules
+    chown -R builder:builder /usr/local/lib/node_modules && \
+    chown -R builder:builder /usr/local/bin
 
 # Clean up
 RUN apt-get clean && \
@@ -56,5 +56,5 @@ USER builder
 
 WORKDIR /build
 
-# Make sure builder user can access global modules
-ENV NODE_PATH=/usr/lib/node_modules
+# Make sure Node can find the global modules
+ENV NODE_PATH=/usr/local/lib/node_modules

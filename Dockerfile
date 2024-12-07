@@ -30,16 +30,18 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     echo "Unsupported architecture: ${arch}" && exit 1 \
     ;; \
     esac && \
-    # Install PostCSS and plugins globally at system level
-    npm install -g \
+    # Create non-root user and setup npm directory
+    useradd -m -s /bin/bash builder && \
+    mkdir -p /usr/lib/node_modules && \
+    chown -R builder:builder /usr/lib/node_modules && \
+    npm config set prefix /usr && \
+    # Install PostCSS and plugins globally
+    runuser -l builder -c 'npm install -g \
     postcss \
     postcss-cli \
     autoprefixer \
     @fullhuman/postcss-purgecss \
-    cssnano && \
-    npm cache clean --force && \
-    # Create non-root user
-    useradd -m -s /bin/bash builder && \
+    cssnano' && \
     # Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -48,3 +50,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 USER builder
 
 WORKDIR /build
+
+# Make sure builder user can access global modules
+ENV NODE_PATH=/usr/lib/node_modules

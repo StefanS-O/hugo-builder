@@ -12,7 +12,7 @@ This Docker image provides a complete build environment for Hugo sites with Sass
 
 The image is automatically built and published to Docker Hub whenever a new Hugo version is released. Each image is tagged with both:
 
-- The specific Hugo version (e.g., `yourusername/hugo-builder:0.121.1`)
+- The specific Hugo version (e.g., `stefanso/hugo-builder:0.121.1`)
 - The `latest` tag
 
 ## Using the Image

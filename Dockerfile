@@ -33,17 +33,19 @@ RUN arch=$(dpkg --print-architecture) && \
     ;; \
     esac
 
-# Create non-root user and setup global npm directory
+# Create non-root user and setup npm directory
 RUN useradd -m -s /bin/bash builder && \
-    mkdir -p /usr/lib/node_modules && \
-    chown -R builder:builder /usr/lib/node_modules && \
-    chown -R builder:builder /usr/bin
+    mkdir -p /usr/local/lib/node_modules && \
+    chown -R builder:builder /usr/local/lib/node_modules && \
+    chown -R builder:builder /usr/local/bin
+
+# Set npm to use /usr/local for global installations
+ENV NPM_CONFIG_PREFIX=/usr/local
 
 # Install PostCSS globally
-RUN npm install -g postcss postcss-cli
-
-# Make sure npm's global bin directory is accessible to builder
-RUN chown -R builder:builder $(npm config get prefix)/{lib/node_modules,bin,share}
+RUN npm install -g postcss postcss-cli && \
+    chown -R builder:builder /usr/local/lib/node_modules && \
+    chown -R builder:builder /usr/local/bin
 
 # Clean up
 RUN apt-get clean && \
